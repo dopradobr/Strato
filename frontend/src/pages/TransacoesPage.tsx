@@ -4,7 +4,7 @@ import TabelaTransacoes from "../components/TabelaTransacoes";
 
 const TransacoesPage = () => {
   const [transacoes, setTransacoes] = useState([]);
-  const [loading, setLoading] = useState(false); // controla o carregamento
+  const [loading, setLoading] = useState(false);
 
   const [filtros, setFiltros] = useState({
     cliente: "",
@@ -15,29 +15,39 @@ const TransacoesPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); // inicia carregamento
+      setLoading(true);
 
       try {
         const { data } = await axios.get("http://localhost:3000/transacoes", {
           params: filtros,
         });
-        setTransacoes(data); // define os dados recebidos
+        setTransacoes(data);
       } catch (error) {
         console.error("Erro ao buscar transações:", error);
       } finally {
-        setLoading(false); // encerra carregamento
+        setLoading(false);
       }
     };
 
     fetchData();
   }, [filtros]);
 
+  // Função para limpar os filtros
+  const limparFiltros = () => {
+    setFiltros({
+      cliente: "",
+      servico: [],
+      dataInicio: "",
+      dataFim: "",
+    });
+  };
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Transações</h1>
 
       {/* Filtros */}
-      <div className="mb-4 flex flex-col md:flex-row gap-2">
+      <div className="mb-4 flex flex-col md:flex-row gap-2 items-start md:items-end">
         <input
           type="text"
           placeholder="Cliente"
@@ -65,6 +75,14 @@ const TransacoesPage = () => {
           }
           className="border px-2 py-1 rounded"
         />
+
+        {/* Botão de limpar filtros */}
+        <button
+          onClick={limparFiltros}
+          className="bg-gray-300 hover:bg-gray-400 text-sm px-3 py-1 rounded"
+        >
+          Limpar filtros
+        </button>
       </div>
 
       {/* Exibição condicional com loading */}
