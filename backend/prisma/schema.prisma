@@ -71,7 +71,8 @@ model Transacao {
   faturaId  String?   // pode ou não estar vinculada
   fatura    Fatura?   @relation(fields: [faturaId], references: [id])
   
-  @@unique([pedido, servicoId, sku, qtd, data, clienteId, armazem]) // 🔒 impede duplicação de serviço por pedido
+  @@unique([idPedido, cliente, armazem, dataTransacao, servico])
+ // 🔒 impede duplicação de serviço por pedido
 
 }
 
