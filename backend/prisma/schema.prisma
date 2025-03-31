@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Aqui
+
+model Cliente {
+  id        String    @id @default(uuid())
+  nome      String
+  cnpj      String    @unique
+  email     String?
+  telefone  String?
+  endereco  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relações
+  transacoes Transacao[]
+  faturas    Fatura[]
+}
+
+model Servico {
+  id               String   @id @default(uuid())
+  nome             String   @unique
+  tipoServico      String
+  valorUnit        Float
+  unidade          String
+  criterioCobranca String   // volume, peso, tempo_diario, tempo_mensal, fixa, variavel
+  tipoRegra        String   // fixo, quantidade_minima, faixa, desconto_progressivo
+  valorRegra       Json?
+  periodicidade    String?  // unico, mensal, anual
+  ativo            Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relações
+  transacoes Transacao[]
+}
+
+model Transacao {
+  id         String   @id @default(uuid())
+  pedido     String
+  clienteId  String
+  servicoId  String
+  armazem String
+  data       DateTime
+  sku        String?
+  qtd        Int
+  peso       Float?
+  dias       Int?     // usado para armazenagem diária
+  valorUnit  Float
+  valorTotal Float
+  status     String   @default("pendente")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relações
+  cliente   Cliente   @relation(fields: [clienteId], references: [id])
+  servico   Servico   @relation(fields: [servicoId], references: [id])
+  faturaId  String?   // pode ou não estar vinculada
+  fatura    Fatura?   @relation(fields: [faturaId], references: [id])
+  
+  @@unique([pedido, servicoId, sku, qtd, data, clienteId, armazem]) // 🔒 impede duplicação de serviço por pedido
+
+}
+
+model Fatura {
+  id         String      @id @default(uuid())
+  clienteId  String
+  periodoDe  DateTime
+  periodoAte DateTime
+  valorTotal Float       @default(0)
+  status     String      @default("gerada") // gerada, enviada, paga
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  // Relações
+  cliente    Cliente     @relation(fields: [clienteId], references: [id])
+  transacoes Transacao[]
+}
